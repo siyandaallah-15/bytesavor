@@ -359,6 +359,37 @@
     .oi-price { font-size: 12px; color: var(--gold); margin-top: 2px; }
     .oi-note { font-size: 11px; color: var(--muted); margin-top: 2px; font-style: italic; }
 
+    /* Takeaway toggle on order item */
+    .oi-tw-btn {
+      margin-top: 5px;
+      padding: 3px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .oi-tw-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .oi-tw-btn.tw-on {
+      background: rgba(232,82,10,0.1);
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
+    /* Takeaway label in review modal */
+    .ri-tw {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 8px;
+      background: rgba(232,82,10,0.12);
+      border: 1px solid rgba(232,82,10,0.3);
+      border-radius: 10px;
+      font-size: 10px; font-weight: 600;
+      color: var(--orange); letter-spacing: 0.03em;
+    }
+
     .oi-qty {
       display: flex; align-items: center; gap: 6px; flex-shrink: 0;
     }
@@ -955,11 +986,19 @@ function addItem(itemId, catId) {
   if (existing) {
     existing.qty++;
   } else {
-    orderItems.push({ menuItem: item, qty: 1, note: '' });
+    // takeaway: false = dine in (default), true = takeaway bag
+    orderItems.push({ menuItem: item, qty: 1, note: '', takeaway: false });
   }
 
   renderOrderSidebar();
   showToast(item.name + ' added', 'success');
+}
+
+function toggleTakeaway(idx) {
+  orderItems[idx].takeaway = !orderItems[idx].takeaway;
+  renderOrderSidebar();
+  const o = orderItems[idx];
+  if (o) showToast(o.menuItem.name + ' → ' + (o.takeaway ? '🥡 Takeaway' : '🍽️ Dine In'), '');
 }
 
 // ── Render order sidebar ──
@@ -995,6 +1034,10 @@ function renderOrderSidebar() {
       <div class="oi-info">
         <div class="oi-name">${o.menuItem.name}</div>
         <div class="oi-price">R${(o.menuItem.price * o.qty).toFixed(2)}</div>
+        <button class="oi-tw-btn ${o.takeaway ? 'tw-on' : ''}"
+                onclick="toggleTakeaway(${idx})">
+          ${o.takeaway ? '🥡 Takeaway' : '🍽️ Dine In'}
+        </button>
       </div>
       <div class="oi-qty">
         <button class="qty-btn minus" onclick="changeQty(${idx},-1)">−</button>
@@ -1040,7 +1083,8 @@ function openModal() {
       <div class="ri-qty">${o.qty}</div>
       <div class="ri-name">
         ${o.menuItem.name}
-        ${o.note?`<span class="ri-note">${o.note}</span>`:''}
+        ${o.takeaway ? '<span class="ri-tw">🥡 Takeaway</span>' : ''}
+        ${o.note ? `<span class="ri-note">${o.note}</span>` : ''}
       </div>
       <div class="ri-price">R${(o.menuItem.price * o.qty).toFixed(2)}</div>
     </div>
