@@ -715,6 +715,7 @@
     </div>
     <div class="hdiv"></div>
     <div class="hscreen">Manager</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.2em;color:var(--purple);text-transform:uppercase;background:rgba(155,114,255,0.10);border:1px solid rgba(155,114,255,0.25);padding:4px 12px;border-radius:20px;flex-shrink:0">📊 Manager Console</div>
     <div class="hright">
       <div class="staff-pill">
         <div class="sdot"></div>
@@ -729,6 +730,7 @@
     <div class="tab on"  onclick="showTab('overview')" id="tab-overview">📊 Overview</div>
     <div class="tab"     onclick="showTab('tables')"   id="tab-tables">🪑 Tables & Bills</div>
     <div class="tab"     onclick="showTab('staff')"    id="tab-staff">👥 Staff</div>
+    <div class="tab"     onclick="showTab('payroll')" id="tab-payroll">💰 Payroll</div>
   </div>
 
   <!-- ══ TAB: OVERVIEW ══ -->
@@ -813,6 +815,93 @@
     </div>
   </div>
 
+  <!-- ══ TAB: PAYROLL ══ -->
+  <div class="main" id="main-payroll">
+
+    <!-- Date range + set pay modal trigger -->
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase">From</span>
+        <input type="date" id="pay-from" style="padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none"/>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase">To</span>
+        <input type="date" id="pay-to" style="padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none"/>
+      </div>
+      <button onclick="renderPayroll()" style="padding:8px 18px;background:linear-gradient(135deg,var(--gold),var(--orange));border:none;border-radius:var(--radius);color:#080a0d;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Calculate</button>
+    </div>
+
+    <!-- Summary card -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px" id="pay-summary-cards"></div>
+
+    <!-- Payroll table -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-head-title">Staff Payroll Breakdown</span>
+        <span style="font-size:11px;color:var(--muted)">Click a row to view shifts or set pay rate</span>
+      </div>
+      <div style="display:grid;grid-template-columns:80px 1fr 90px 80px 80px 100px 120px 120px;padding:10px 16px;background:var(--card2);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);gap:8px">
+        <div>ID</div><div>Name</div><div>Role</div>
+        <div>Pay Type</div><div>Rate</div>
+        <div>Shifts</div><div>Hours</div><div>Gross Pay</div>
+      </div>
+      <div id="payroll-body"></div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: Set Pay Rate ══ -->
+  <div class="overlay" id="modal-pay">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title" id="pay-modal-name">Set Pay Rate</span>
+        <button class="modal-close" onclick="closeModal('modal-pay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">Setting the pay type and rate for this staff member. This is used to calculate their salary from their shift hours.</div>
+        <div class="f-group">
+          <label class="f-label">Pay Type</label>
+          <select class="f-select" id="pay-type" onchange="togglePayFields()">
+            <option value="hourly">Hourly Rate</option>
+            <option value="salary">Fixed Monthly Salary</option>
+          </select>
+        </div>
+        <div class="f-group" id="hourly-wrap">
+          <label class="f-label">Hourly Rate (R per hour)</label>
+          <input class="f-input" type="number" id="hourly-rate" placeholder="e.g. 45.00" step="0.01" min="0"/>
+        </div>
+        <div class="f-group" id="salary-wrap" style="display:none">
+          <label class="f-label">Monthly Salary (R)</label>
+          <input class="f-input" type="number" id="monthly-salary" placeholder="e.g. 8500.00" step="0.01" min="0"/>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-secondary" onclick="closeModal('modal-pay')">Cancel</button>
+        <button class="btn-primary" onclick="savePayRate()">Save Pay Rate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: Shift History ══ -->
+  <div class="overlay" id="modal-shifts">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title" id="shifts-modal-name">Shift History</span>
+        <button class="modal-close" onclick="closeModal('modal-shifts')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="shifts-list"></div>
+        <div style="margin-top:14px;padding:12px 16px;background:var(--card);border-radius:var(--radius);display:flex;justify-content:space-between;font-size:14px;font-weight:600">
+          <span style="color:var(--soft)">Total Hours</span>
+          <span style="color:var(--gold)" id="shifts-total-hours">0h</span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-primary" onclick="closeModal('modal-shifts')">Close</button>
+      </div>
+    </div>
+  </div>
+
+
 </div>
 
 <script>
@@ -861,13 +950,14 @@ let STAFF = [
 
 // ── Tab switching ──
 function showTab(tab) {
-  ['overview','tables','staff'].forEach(t => {
+  ['overview','tables','staff','payroll'].forEach(t => {
     document.getElementById('tab-' + t).classList.toggle('on', t === tab);
     document.getElementById('main-' + t).classList.toggle('on', t === tab);
   });
   if (tab === 'overview') renderOverview();
   if (tab === 'tables')   renderTables();
   if (tab === 'staff')    renderStaff();
+  if (tab === 'payroll')  renderPayroll();
 }
 
 // ════════════════════
