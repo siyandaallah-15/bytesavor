@@ -497,6 +497,7 @@
     </div>
     <div class="hdiv"></div>
     <div class="hscreen">Payment</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.2em;color:var(--success);text-transform:uppercase;background:rgba(62,184,122,0.10);border:1px solid rgba(62,184,122,0.25);padding:4px 12px;border-radius:20px;flex-shrink:0">💳 Cashier Station</div>
     <div class="hright">
       <div class="staff-pill">
         <div class="sdot"></div>
