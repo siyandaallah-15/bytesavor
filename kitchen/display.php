@@ -352,6 +352,7 @@
   </div>
   <div class="header-div"></div>
   <div class="header-title">Kitchen Display</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.2em;color:var(--orange);text-transform:uppercase;background:rgba(232,82,10,0.10);border:1px solid rgba(232,82,10,0.25);padding:4px 12px;border-radius:20px;flex-shrink:0">🍳 Kitchen Display</div>
 
   <div class="header-counts" id="header-counts"></div>
   <div class="clock" id="clock">00:00:00</div>
