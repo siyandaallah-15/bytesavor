@@ -117,6 +117,15 @@
     }
     .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
+    /* Clock in/out button */
+    .btn-clock { padding: 6px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+    .btn-clock.in  { background: rgba(62,184,122,0.12); border: 1px solid rgba(62,184,122,0.35); color: var(--success); }
+    .btn-clock.in:hover  { background: var(--success); color: #080a0d; }
+    .btn-clock.out { background: rgba(224,85,85,0.12);  border: 1px solid rgba(224,85,85,0.35);  color: var(--danger);  }
+    .btn-clock.out:hover { background: var(--danger);  color: #fff; }
+    .clock-timer { font-size: 11px; color: var(--success); font-weight: 600; display: none; }
+    .clock-timer.show { display: block; }
+
     /* ── Main content area ── */
     .main {
       grid-column: 1;
@@ -672,6 +681,7 @@
       <div class="name">Byte<span>Savor</span></div>
     </div>
     <div class="header-divider"></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;background:rgba(245,166,35,0.10);border:1px solid rgba(245,166,35,0.25);padding:4px 12px;border-radius:20px;flex-shrink:0">🧑‍🍳 Waiter Station</div>
     <div class="header-table-info">
       <div class="table-badge" id="table-badge">Table —</div>
       <span class="header-hint" id="header-hint">Select a table to begin</span>
@@ -681,6 +691,8 @@
         <div class="staff-dot"></div>
         <span id="staff-name">Waiter</span>
       </div>
+      <span class="clock-timer" id="clock-timer">⏱ 0h 0m</span>
+      <button class="btn-clock in" id="btn-clock" onclick="toggleClock()">🟢 Clock In</button>
       <button class="btn-logout" onclick="window.location.href='../logout.php'">Sign Out</button>
     </div>
   </header>
@@ -1140,6 +1152,73 @@ function showToast(msg, type) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
 }
+
+// ── Clock In/Out ──
+let clockedIn      = false;
+let clockInTime    = null;
+let clockInterval  = null;
+
+async function initClock() {
+  try {
+    const res  = await fetch('../api/shifts.php?action=status');
+    const data = await res.json();
+    if (data.success && data.data.clocked_in) {
+      clockedIn   = true;
+      clockInTime = new Date(data.data.clock_in_time);
+      updateClockUI();
+      startClockTimer();
+    }
+  } catch(e) { console.log('Clock status unavailable'); }
+}
+
+async function toggleClock() {
+  const action = clockedIn ? 'clock_out' : 'clock_in';
+  try {
+    const fd  = new FormData();
+    fd.append('action', action);
+    const res  = await fetch('../api/shifts.php', { method:'POST', body:fd });
+    const data = await res.json();
+    if (data.success) {
+      clockedIn = !clockedIn;
+      if (clockedIn) { clockInTime = new Date(); startClockTimer(); }
+      else           { stopClockTimer(); }
+      updateClockUI();
+      showToast(data.message, 'success');
+    } else {
+      showToast(data.message, 'error');
+    }
+  } catch(e) { showToast('Could not reach server', 'error'); }
+}
+
+function updateClockUI() {
+  const btn   = document.getElementById('btn-clock');
+  const timer = document.getElementById('clock-timer');
+  if (clockedIn) {
+    btn.textContent = '🔴 Clock Out';
+    btn.className   = 'btn-clock out';
+    timer.classList.add('show');
+  } else {
+    btn.textContent = '🟢 Clock In';
+    btn.className   = 'btn-clock in';
+    timer.classList.remove('show');
+  }
+}
+
+function startClockTimer() {
+  clockInterval = setInterval(() => {
+    if (!clockInTime) return;
+    const diff  = Math.floor((Date.now() - clockInTime.getTime()) / 60000);
+    const h     = Math.floor(diff / 60);
+    const m     = diff % 60;
+    document.getElementById('clock-timer').textContent = `⏱ ${h}h ${m}m`;
+  }, 30000);
+}
+function stopClockTimer() {
+  clearInterval(clockInterval);
+  document.getElementById('clock-timer').textContent = '⏱ 0h 0m';
+}
+
+initClock();
 
 // Close modal on overlay click
 document.getElementById('modal').addEventListener('click', e => {
