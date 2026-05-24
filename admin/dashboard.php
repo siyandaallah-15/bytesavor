@@ -649,6 +649,7 @@
     </div>
     <div class="hdiv"></div>
     <div class="hscreen">Admin</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.2em;color:var(--orange);text-transform:uppercase;background:rgba(232,82,10,0.10);border:1px solid rgba(232,82,10,0.25);padding:4px 12px;border-radius:20px;flex-shrink:0">⚙️ Admin Console</div>
     <div class="hright">
       <div class="staff-pill"><div class="sdot"></div><span id="admin-name">Admin</span></div>
       <button class="btn-out" onclick="window.location.href='../logout.php'">Sign Out</button>
